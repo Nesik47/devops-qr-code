@@ -42,8 +42,8 @@ jobs:
             cd devops-qr-code
             
             cat > .env << EOF
-            AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}
             ECR_API_URL=${{ secrets.ECR_API_URL }}
             ECR_FRONTEND_URL=${{ secrets.ECR_FRONTEND_URL }}
