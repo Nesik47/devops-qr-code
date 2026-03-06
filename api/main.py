@@ -13,7 +13,8 @@ app = FastAPI()
 
 # Allowing CORS for local testing
 origins = [
-    "http://localhost:3000"
+    "http://localhost:3000",
+    os.getenv("FRONTEND_URL", "")
 ]
 
 app.add_middleware(
