@@ -35,20 +35,22 @@ jobs:
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws configure set region ${{ secrets.AWS_REGION }}
+            
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_API_URL }}
             
             cd ~ && rm -rf devops-qr-code
-            git clone https://github.com/Nesik47/devops-qr-code
-            cd devops-qr-code
+            git clone https://github.com/Nesik47/devops-qr-code.git
+            cd ~/devops-qr-code
             
-            cat > .env << EOF
-            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}
-            ECR_API_URL=${{ secrets.ECR_API_URL }}
-            ECR_FRONTEND_URL=${{ secrets.ECR_FRONTEND_URL }}
-            NEXT_PUBLIC_API_URL=http://${{ secrets.EC2_PUBLIC_IP }}:8000
-            EOF
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" > .env
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+            echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
+            echo "ECR_API_URL=${{ secrets.ECR_API_URL }}" >> .env
+            echo "ECR_FRONTEND_URL=${{ secrets.ECR_FRONTEND_URL }}" >> .env
+            echo "NEXT_PUBLIC_API_URL=http://${{ secrets.EC2_PUBLIC_IP }}:8000" >> .env
             
             docker compose pull
             docker compose up -d

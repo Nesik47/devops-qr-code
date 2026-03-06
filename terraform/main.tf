@@ -118,12 +118,13 @@ resource "aws_instance" "ec2" {
   user_data = <<-EOF
   #!/bin/bash
   yum update -y
-  yum install -y docker
+  yum install -y docker git aws-cli
   systemctl start docker
   systemctl enable docker
   usermod -aG docker ec2-user
-  curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  chmod +x /usr/local/bin/docker-compose
+  mkdir -p /usr/local/lib/docker/cli-plugins
+  curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+  chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 EOF
 
   tags = {
