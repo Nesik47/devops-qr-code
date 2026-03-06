@@ -7,6 +7,23 @@ resource "aws_s3_bucket" "s3_qr" {
   }
 }
 
+resource "aws_s3_bucket_public_access_block" "qr_bucket" {
+  bucket = aws_s3_bucket.s3_qr.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_ownership_controls" "qr_bucket" {
+  bucket = aws_s3_bucket.s3_qr.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
 resource "aws_ecr_repository" "ecr_api" {
   name                 = var.ecr_api_name
   image_tag_mutability = "MUTABLE"
