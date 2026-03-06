@@ -1,0 +1,6 @@
+.env
+.env.example
+.gitignore
+Dockerfile
+.next
+node_modules

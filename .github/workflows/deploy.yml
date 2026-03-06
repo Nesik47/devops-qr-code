@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR Private
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push API image
+        run: |
+          docker build -t ${{ secrets.ECR_API_URL }}:latest ./api
+          docker push ${{ secrets.ECR_API_URL }}:latest 
+      - name: Build and push Frontend image
+        run: |
+          docker build -t ${{ secrets.ECR_FRONTEND_URL }}:latest ./front-end-nextjs
+          docker push ${{ secrets.ECR_FRONTEND_URL }}:latest
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_API_URL }}
+            
+            cd ~ && rm -rf devops-qr-code
+            git clone https://github.com/Nesik47/devops-qr-code
+            cd devops-qr-code
+            
+            cat > .env << EOF
+            AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}
+            ECR_API_URL=${{ secrets.ECR_API_URL }}
+            ECR_FRONTEND_URL=${{ secrets.ECR_FRONTEND_URL }}
+            NEXT_PUBLIC_API_URL=http://${{ secrets.EC2_PUBLIC_IP }}:8000
+            EOF
+            
+            docker compose pull
+            docker compose up -d
